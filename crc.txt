@@ -1,0 +1,51 @@
+Enter data to be transmitted: 1101011011
+Enter generating polynomial: 10011
+
+def xor(a, b):
+    """Perform bitwise XOR operation between two binary strings."""
+    return ''.join('0' if x == y else '1' for x, y in zip(a, b))
+
+def crc_remainder(data, gen_poly):
+    """Calculate the CRC remainder using the generating polynomial."""
+    N = len(gen_poly)
+    padded_data = data + '0' * (N - 1)
+    check_value = padded_data[:N]
+    
+    for i in range(N, len(padded_data)):
+        if check_value[0] == '1':
+            check_value = xor(check_value, gen_poly)
+        check_value = check_value[1:] + padded_data[i]
+    
+    if check_value[0] == '1':
+        check_value = xor(check_value, gen_poly)
+    
+    return check_value[1:]
+
+def append_crc(data, gen_poly):
+    """Append the CRC remainder to the data."""
+    return data + crc_remainder(data, gen_poly)
+
+def verify_crc(received_data, gen_poly):
+    """Verify the received data by recalculating the CRC remainder."""
+    return crc_remainder(received_data, gen_poly) == '0' * (len(gen_poly) - 1)
+
+def main_crc():
+    """Main function to handle input, transmission, and verification."""
+    data = input("Enter data to be transmitted: ").strip()
+    gen_poly = input("Enter generating polynomial: ").strip()
+    
+    transmitted_data = append_crc(data, gen_poly)
+    print("\nRemainder from division:", crc_remainder(data, gen_poly))
+    print("Final data to be sent:", transmitted_data)
+
+    print("\nReceiver:")
+    received_data = transmitted_data
+    print("Received data:", received_data)
+    
+    if verify_crc(received_data, gen_poly):
+        print("No error detected.")
+    else:
+        print("Error detected!")
+
+if __name__ == "__main__":
+    main_crc()

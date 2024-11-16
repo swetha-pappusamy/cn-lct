@@ -1,0 +1,57 @@
+#checksum
+def binary_addition(a, b):
+    result = []
+    carry = 0
+    length = max(len(a), len(b))
+    a = a.zfill(length)
+    b = b.zfill(length)
+    
+    for i in range(length - 1, -1, -1):
+        total = int(a[i]) + int(b[i]) + carry
+        result.append(str(total % 2))
+        carry = total // 2
+
+    if carry:
+        result.append('1')
+
+    return ''.join(reversed(result))
+
+def calculate_checksum(data_blocks):
+    checksum = data_blocks[0]
+    for block in data_blocks[1:]:
+        checksum = binary_addition(checksum, block)
+        # Handling overflow by wrapping around (one's complement addition)
+        if len(checksum) > len(data_blocks[0]):
+            checksum = binary_addition(checksum[1:], '1')
+    
+    # One's complement of the final sum
+    return ''.join('1' if bit == '0' else '0' for bit in checksum)
+
+def transmit_data(data_blocks):
+    checksum = calculate_checksum(data_blocks)
+    return data_blocks + [checksum], checksum
+
+def verify_checksum(received_blocks):
+    received_checksum = received_blocks[-1]
+    calculated_checksum = calculate_checksum(received_blocks[:-1])
+    return calculated_checksum == received_checksum
+
+def main_checksum():
+    n = int(input("Enter the number of binary blocks: "))
+    data_blocks = [input(f"Enter binary block {i + 1}: ").strip() for i in range(n)]
+
+    transmitted_data, checksum = transmit_data(data_blocks)
+    print("\nCalculated Checksum:", checksum)
+    print("Data to be sent (blocks + checksum):", transmitted_data)
+
+    received_blocks = transmitted_data
+    print("\nReceiver:")
+    print("Received blocks:", received_blocks)
+
+    if verify_checksum(received_blocks):
+        print("Checksum valid: true\nNo error detected.")
+    else:
+        print("Checksum valid: false\nError detected! Data may be corrupted.")
+
+if __name__ == "__main__":
+    main_checksum()

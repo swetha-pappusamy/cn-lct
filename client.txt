@@ -1,0 +1,51 @@
+import socket
+import threading
+
+# TCP setup
+TCP_HOST = '127.0.0.1'
+TCP_PORT = 12345
+
+# UDP setup
+UDP_HOST = '127.0.0.1'
+UDP_PORT = 12346
+
+tcp_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+udp_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+def tcp_receive():
+    while True:
+        try:
+            message = tcp_client.recv(1024).decode('utf-8')
+            print(f"TCP: {message}")
+        except:
+            print("TCP Connection closed.")
+            break
+
+def tcp_send():
+    while True:
+        message = input("TCP: ")
+        tcp_client.send(message.encode('utf-8'))
+
+def udp_send():
+    while True:
+        message = input("UDP: ")
+        udp_client.sendto(message.encode('utf-8'), (UDP_HOST, UDP_PORT))
+        response, _ = udp_client.recvfrom(1024)
+        print(f"UDP Response: {response.decode('utf-8')}")
+
+def main():
+    choice = input("Choose communication type (TCP/UDP): ").strip().lower()
+
+    if choice == 'tcp':
+        tcp_client.connect((TCP_HOST, TCP_PORT))
+        print("Connected to TCP Server")
+        threading.Thread(target=tcp_receive, daemon=True).start()
+        tcp_send()
+    elif choice == 'udp':
+        print("Ready for UDP communication")
+        udp_send()
+    else:
+        print("Invalid choice. Exiting.")
+
+if __name__ == "__main__":
+    main()

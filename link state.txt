@@ -1,0 +1,64 @@
+import heapq
+
+
+class Graph:
+    def _init_(self, vertices):
+        self.V = vertices
+        self.graph = [[float('inf')] * vertices for _ in range(vertices)]
+
+    def add_edge(self, u, v, w):
+        """Adds an edge between vertices u and v with weight w."""
+        self.graph[u][v] = w
+        self.graph[v][u] = w
+
+    def link_state_routing(self, src):
+        """Implements Link State Routing (Dijkstra's algorithm)."""
+        dist = [float('inf')] * self.V
+        dist[src] = 0
+        visited = [False] * self.V
+        pq = [(0, src)]  # Priority queue to store (distance, node)
+
+        while pq:
+            curr_dist, u = heapq.heappop(pq)
+
+            if visited[u]:
+                continue
+
+            visited[u] = True
+
+            for v in range(self.V):
+                if self.graph[u][v] != float('inf') and not visited[v]:
+                    new_dist = curr_dist + self.graph[u][v]
+                    if new_dist < dist[v]:
+                        dist[v] = new_dist
+                        heapq.heappush(pq, (new_dist, v))
+
+        # Print the routing table
+        print(f"Link State Routing Table from Node {src}:")
+        for i in range(self.V):
+            print(f"Distance to node {i}: {dist[i]}")
+        return dist
+
+
+if __name__ == "__main__":
+    vertices = int(input("Enter the number of vertices: "))
+    g = Graph(vertices)
+
+    edges = int(input("Enter the number of edges: "))
+    for _ in range(edges):
+        u, v, w = map(int, input("Enter edge (u, v) and weight w: ").split())
+        g.add_edge(u, v, w)
+
+    source_node = int(input("Enter the source node: "))
+    print("\n--- Link State Routing ---")
+    g.link_state_routing(source_node)
+
+# Enter the number of vertices: 5
+# Enter the number of edges: 6
+# Enter edge (u, v) and weight w: 0 1 2
+# Enter edge (u, v) and weight w: 1 2 1
+# Enter edge (u, v) and weight w: 0 2 4
+# Enter edge (u, v) and weight w: 1 2 7
+# Enter edge (u, v) and weight w: 2 4 3
+# Enter edge (u, v) and weight w: 3 4 1
+# Enter the source node: 0

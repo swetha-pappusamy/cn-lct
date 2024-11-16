@@ -1,0 +1,52 @@
+import socket
+import threading
+
+# TCP setup
+TCP_HOST = '127.0.0.1'
+TCP_PORT = 12345
+tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcp_server.bind((TCP_HOST, TCP_PORT))
+tcp_server.listen()
+
+# UDP setup
+UDP_HOST = '127.0.0.1'
+UDP_PORT = 12346
+udp_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+udp_server.bind((UDP_HOST, UDP_PORT))
+
+clients = []
+
+def handle_tcp_client(client_socket):
+    while True:
+        try:
+            message = client_socket.recv(1024).decode('utf-8')
+            if message:
+                print(f"TCP Message Received: {message}")
+                broadcast_tcp(message, client_socket)
+        except:
+            clients.remove(client_socket)
+            client_socket.close()
+            break
+
+def broadcast_tcp(message, sender_socket):
+    for client in clients:
+        if client != sender_socket:
+            try:
+                client.send(message.encode('utf-8'))
+            except:
+                clients.remove(client)
+
+def handle_udp():
+    while True:
+        message, addr = udp_server.recvfrom(1024)
+        print(f"UDP Message Received from {addr}: {message.decode('utf-8')}")
+        udp_server.sendto(b"Message Received!", addr)
+
+print("Server is running...")
+threading.Thread(target=handle_udp, daemon=True).start()
+
+while True:
+    client_socket, addr = tcp_server.accept()
+    print(f"TCP Connection Established with {addr}")
+    clients.append(client_socket)
+    threading.Thread(target=handle_tcp_client, args=(client_socket,), daemon=True).start()
